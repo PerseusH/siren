@@ -1,2 +1,2 @@
 # siren
-> A web-crawler with python(*scrapy*+*gevent*).
+> A web-crawler with python(*scrapy*+*gevent*+*requests*+urlib).
