@@ -1,2 +1,2 @@
 # siren
-A web-spider with python(twisted+gevent).
+> A web-crawler with python(*scrapy*+*gevent*).
