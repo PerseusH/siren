@@ -24,20 +24,28 @@ class Zhibo8Spider(scrapy.Spider):
                 yield scrapy.Request(url, callback=self.transfer)
 
     def transfer(self, response):
-        selector = Selector(response)
         body = response.body
         pos_game_id = body.find('p_saishi_id')
         pattern = re.compile(r"\'[\S\s]+?\'")
-        url = 'https://news.zhibo8.cc/nba/%s/%s.htm' % (self.today, pattern.findall(body[pos_game_id:])[0][1: -1])
-        yield scrapy.Request(url, callback=self.game_info)
+        game_id = pattern.findall(body[pos_game_id:])[0][1: -1]
+        score_url = 'https://bifen4pc.qiumibao.com/json/%s/%s.htm' % (self.today, game_id)
+        ginfo_url = 'https://news.zhibo8.cc/nba/%s/%s.htm' % (self.today, game_id)
+        yield scrapy.Request(ginfo_url, meta={'score_url': score_url}, callback=self.game_info)
 
     def game_info(self, response):
         selector = Selector(response)
+        sel_score = selector.xpath('//div[@class="bifen radt5"]')
         title = selector.xpath('//div[@class="tzhanbao"]/div[@class="title"]/h1/text()').extract()[0].encode('utf-8')
         brief1 = selector.xpath('//div[@class="tzhanbao"]/div[@class="content"]/p[4]/text()').extract()[0].encode('utf-8')
         brief2 = selector.xpath('//div[@class="tzhanbao"]/div[@class="content"]/p[5]/text()').extract()[0].encode('utf-8')
-        print title
+        yield scrapy.Request(response.meta['score_url'], meta={'title': title, 'brief1': brief1, 'brief2': brief2}, callback=self.score)
+
+    def score(self, response):
+        body = json.loads(response.body)
+        meta = response.meta
+        print body['home_team'].encode('utf-8'), body['home_score'], ':', body['visit_score'], body['visit_team'].encode('utf-8')
+        print meta['title']
         print ''
-        print brief1
-        print brief2
+        print meta['brief1']
+        print meta['brief2']
         print '---------------------------------------------------------------------------------------------'
