@@ -26,11 +26,12 @@ class Zhibo8Spider(scrapy.Spider):
     def transfer(self, response):
         body = response.body
         pos_game_id = body.find('p_saishi_id')
-        pattern = re.compile(r"\'[\S\s]+?\'")
-        game_id = pattern.findall(body[pos_game_id:])[0][1: -1]
-        score_url = 'https://bifen4pc.qiumibao.com/json/%s/%s.htm' % (self.today, game_id)
-        ginfo_url = 'https://news.zhibo8.cc/nba/%s/%s.htm' % (self.today, game_id)
-        yield scrapy.Request(ginfo_url, meta={'score_url': score_url}, callback=self.game_info)
+        if pos_game_id is not -1:
+            pattern = re.compile(r"\'[\S\s]+?\'")
+            game_id = pattern.findall(body[pos_game_id:])[0][1: -1]
+            score_url = 'https://bifen4pc.qiumibao.com/json/%s/%s.htm' % (self.today, game_id)
+            ginfo_url = 'https://news.zhibo8.cc/nba/%s/%s.htm' % (self.today, game_id)
+            yield scrapy.Request(ginfo_url, meta={'score_url': score_url}, callback=self.game_info)
 
     def game_info(self, response):
         selector = Selector(response)
